@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Order Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Color Order Game</h1>
+<p id="instructions">Enter what order you think this list is in:<br>
+    0: Pink, 1: Red, 2: Orange, 3: Blue, 4: Green<br>
+    Example "0,1,2,3,4"</p>
+
+<div>
+    <label for="playerinput">Your input:</label>
+    <input type="text" id="playerinput" name="playerinput">
+    <button onclick="checkInput()">Submit</button>
+</div>
+
+<p id="message"></p>
+<p id="lastinput" class="hidden"></p>
+
+<script>
+    const olst = ['0: Pink', '1: Red', '2: Orange', '3: Blue', '4: Green'];
+    let gamelst = ['0', '1', '2', '3', '4'];
+
+    while (gamelst.toString() === ['0', '1', '2', '3', '4'].toString()) {
+        gamelst = gamelst.sort(() => Math.random() - 0.5);
+    }
+
+    let trynumber = 1;
+    let error = false;
+    let count = 0;
+
+    function checkInput() {
+        const playerinput = document.getElementById('playerinput').value.replace(' ', '');
+        const playerinputlst = playerinput.split(',');
+
+        let message = '';
+        error = false;
+
+        if (trynumber === 1) {
+            document.getElementById('message').innerHTML = '';
+        }
+        
+        if (playerinputlst.length < 5) {
+            message = "ERROR: You need to enter like this: '0,1,2,3,4'\nTry again\n\n";
+            error = true;
+        } else {
+            for (let i = 0; i < 5; i++) {
+                if (!playerinputlst.includes(String(i))) {
+                    message = 'ERROR: ' + i + ' is missing from your input\nTry again\n\n';
+                    error = true;
+                }
+            }
+        }
+
+        if (!error) {
+            count = 0;
+            for (let i = 0; i < playerinputlst.length; i++) {
+                if (playerinputlst[i] === gamelst[i]) {
+                    count += 1;
+                }
+            }
+            if (count === 5) {
+                message = 'You WON!! in ' + trynumber + ' tries';
+            } else {
+                message = 'You got ' + count + ' correct\nTry again\n';
+                trynumber += 1;
+                document.getElementById('lastinput').innerText = 'Your last input was ' + playerinput;
+                document.getElementById('lastinput').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('message').innerText = message;
+        document.getElementById('instructions').innerText = 'TRY NUMBER: ' + trynumber + ' out of 10\nEnter what order you think this list is in:\n' + olst.join(', ');
+
+        if (trynumber > 10) {
+            document.getElementById('message').innerText = 'Game Over! You used all 10 tries.';
+        }
+    }
+</script>
+
+</body>
+</html>
