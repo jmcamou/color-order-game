@@ -99,6 +99,8 @@
     });
 
     let touchElement = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     function dragStart(event) {
         event.dataTransfer.setData('text/plain', event.target.dataset.id);
@@ -106,15 +108,18 @@
 
     function touchStart(event) {
         touchElement = event.target;
-        event.target.style.position = 'absolute';
-        event.target.style.zIndex = 1000;
-        moveAt(event.touches[0].pageX, event.touches[0].pageY);
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+        touchElement.style.position = 'absolute';
+        touchElement.style.zIndex = 1000;
+        document.body.appendChild(touchElement);
+        moveAt(event.touches[0].clientX, event.touches[0].clientY);
     }
 
     function touchMove(event) {
         event.preventDefault();
         if (touchElement) {
-            moveAt(event.touches[0].pageX, event.touches[0].pageY);
+            moveAt(event.touches[0].clientX, event.touches[0].clientY);
         }
     }
 
@@ -125,9 +130,9 @@
             touchElement = null;
         }
 
-        const dropZone = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+        const dropZone = document.elementFromPoint(touchStartX, touchStartY);
         if (dropZone && (dropZone.classList.contains('drop-zone') || dropZone.classList.contains('color-box'))) {
-            drop({target: dropZone});
+            drop({ target: dropZone });
         }
     }
 
