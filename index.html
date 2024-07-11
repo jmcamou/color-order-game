@@ -86,15 +86,54 @@
 
     colorBoxes.forEach(box => {
         box.addEventListener('dragstart', dragStart);
+        box.addEventListener('touchstart', touchStart);
+        box.addEventListener('touchmove', touchMove);
+        box.addEventListener('touchend', touchEnd);
     });
 
     dropZones.forEach(zone => {
         zone.addEventListener('dragover', dragOver);
         zone.addEventListener('drop', drop);
+        zone.addEventListener('touchmove', touchMove);
+        zone.addEventListener('touchend', touchEnd);
     });
+
+    let touchElement = null;
 
     function dragStart(event) {
         event.dataTransfer.setData('text/plain', event.target.dataset.id);
+    }
+
+    function touchStart(event) {
+        touchElement = event.target;
+        event.target.style.position = 'absolute';
+        event.target.style.zIndex = 1000;
+        moveAt(event.touches[0].pageX, event.touches[0].pageY);
+    }
+
+    function touchMove(event) {
+        event.preventDefault();
+        if (touchElement) {
+            moveAt(event.touches[0].pageX, event.touches[0].pageY);
+        }
+    }
+
+    function touchEnd(event) {
+        if (touchElement) {
+            touchElement.style.position = '';
+            touchElement.style.zIndex = '';
+            touchElement = null;
+        }
+
+        const dropZone = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+        if (dropZone && (dropZone.classList.contains('drop-zone') || dropZone.classList.contains('color-box'))) {
+            drop({target: dropZone});
+        }
+    }
+
+    function moveAt(pageX, pageY) {
+        touchElement.style.left = pageX - touchElement.offsetWidth / 2 + 'px';
+        touchElement.style.top = pageY - touchElement.offsetHeight / 2 + 'px';
     }
 
     function dragOver(event) {
@@ -103,7 +142,7 @@
 
     function drop(event) {
         event.preventDefault();
-        const draggedId = event.dataTransfer.getData('text/plain');
+        const draggedId = touchElement ? touchElement.dataset.id : event.dataTransfer.getData('text/plain');
         const draggedBox = document.querySelector(`.color-box[data-id="${draggedId}"]`);
 
         if (event.target.classList.contains('drop-zone')) {
