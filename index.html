@@ -36,6 +36,9 @@
         #message {
             margin-top: 20px;
         }
+        #submit-button {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -51,7 +54,7 @@
     <div class="drop-zone"><div class="color-box" draggable="true" data-id="4">4</div></div>
 </div>
 
-<button onclick="checkInput()">Submit</button>
+<button id="submit-button" onclick="checkInput()">Submit (Try: 1)</button>
 
 <p id="message"></p>
 <p id="lastinput" class="hidden"></p>
@@ -204,7 +207,7 @@
         }
 
         document.getElementById('message').innerText = message;
-        document.getElementById('instructions').innerText = 'TRY NUMBER: ' + trynumber + ' out of 10\nEnter what order you think this list is in:\n' + olst.join(', ');
+        document.getElementById('submit-button').innerText = `Submit (Try: ${trynumber})`;
 
         if (trynumber > 10) {
             document.getElementById('message').innerText = 'Game Over! You used all 10 tries.';
