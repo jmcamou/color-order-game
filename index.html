@@ -16,6 +16,7 @@
             justify-content: center;
             border: 1px solid #000;
             cursor: pointer;
+            touch-action: none; /* Disable default touch actions */
         }
         .color-box[data-id="0"] { background-color: pink; }
         .color-box[data-id="1"] { background-color: red; }
@@ -38,6 +39,11 @@
         }
         #submit-button {
             margin-top: 20px;
+        }
+        .dragging {
+            opacity: 0.5;
+            position: absolute;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -71,6 +77,8 @@
     let error = false;
     let count = 0;
     let touchSrcElement = null;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
 
     const colorBoxes = document.querySelectorAll('.color-box');
     const dropZones = document.querySelectorAll('.drop-zone');
@@ -122,22 +130,27 @@
 
     function touchStart(event) {
         touchSrcElement = event.target;
+        touchSrcElement.classList.add('dragging');
+        const touch = event.touches[0];
+        const rect = touchSrcElement.getBoundingClientRect();
+        touchOffsetX = touch.clientX - rect.left;
+        touchOffsetY = touch.clientY - rect.top;
     }
 
     function touchMove(event) {
         event.preventDefault();
-        const touchLocation = event.changedTouches[0];
-        const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
-        
-        if (element.classList.contains('drop-zone')) {
-            event.preventDefault();
-        }
+        const touch = event.touches[0];
+        touchSrcElement.style.left = `${touch.clientX - touchOffsetX}px`;
+        touchSrcElement.style.top = `${touch.clientY - touchOffsetY}px`;
     }
 
     function touchEnd(event) {
         event.preventDefault();
-        const touchLocation = event.changedTouches[0];
-        const element = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+        touchSrcElement.classList.remove('dragging');
+        touchSrcElement.style.left = '';
+        touchSrcElement.style.top = '';
+        const touch = event.changedTouches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
         
         if (element && touchSrcElement) {
             if (element.classList.contains('drop-zone')) {
@@ -159,6 +172,7 @@
                 originalZone.appendChild(targetBox);
             }
         }
+        touchSrcElement = null;
     }
 
     function checkInput() {
