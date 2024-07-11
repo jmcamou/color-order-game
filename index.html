@@ -5,24 +5,66 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            text-align: center;
         }
-        .hidden {
-            display: none;
+        #colors {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .color-box {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        .color-box[data-id="0"] { background-color: pink; }
+        .color-box[data-id="1"] { background-color: red; }
+        .color-box[data-id="2"] { background-color: orange; }
+        .color-box[data-id="3"] { background-color: blue; }
+        .color-box[data-id="4"] { background-color: green; }
+        #playerinput {
+            display: flex;
+            justify-content: center;
+            min-height: 60px;
+        }
+        .drop-zone {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            border: 1px dashed #000;
+        }
+        #message {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
 <h1>Color Order Game</h1>
-<p id="instructions">Enter what order you think this list is in:<br>
-    0: Pink, 1: Red, 2: Orange, 3: Blue, 4: Green<br>
-    Example "0,1,2,3,4"</p>
+<p>Drag and drop the colored boxes in the order you think is correct.</p>
 
-<div>
-    <label for="playerinput">Your input:</label>
-    <input type="text" id="playerinput" name="playerinput">
-    <button onclick="checkInput()">Submit</button>
+<div id="colors">
+    <div class="color-box" draggable="true" data-id="0">0</div>
+    <div class="color-box" draggable="true" data-id="1">1</div>
+    <div class="color-box" draggable="true" data-id="2">2</div>
+    <div class="color-box" draggable="true" data-id="3">3</div>
+    <div class="color-box" draggable="true" data-id="4">4</div>
 </div>
+
+<div id="playerinput">
+    <div class="drop-zone"></div>
+    <div class="drop-zone"></div>
+    <div class="drop-zone"></div>
+    <div class="drop-zone"></div>
+    <div class="drop-zone"></div>
+</div>
+
+<button onclick="checkInput()">Submit</button>
 
 <p id="message"></p>
 <p id="lastinput" class="hidden"></p>
@@ -39,9 +81,59 @@
     let error = false;
     let count = 0;
 
+    const colorBoxes = document.querySelectorAll('.color-box');
+    const dropZones = document.querySelectorAll('.drop-zone');
+
+    colorBoxes.forEach(box => {
+        box.addEventListener('dragstart', dragStart);
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', dragOver);
+        zone.addEventListener('drop', drop);
+    });
+
+    function dragStart(event) {
+        event.dataTransfer.setData('text/plain', event.target.dataset.id);
+    }
+
+    function dragOver(event) {
+        event.preventDefault();
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        const draggedId = event.dataTransfer.getData('text/plain');
+        const draggedBox = document.querySelector(`.color-box[data-id="${draggedId}"]`);
+
+        if (event.target.classList.contains('drop-zone')) {
+            if (event.target.hasChildNodes()) {
+                const existingBox = event.target.firstChild;
+                const originalZone = draggedBox.parentElement;
+
+                event.target.replaceChild(draggedBox, existingBox);
+                originalZone.appendChild(existingBox);
+            } else {
+                event.target.appendChild(draggedBox);
+            }
+        } else if (event.target.classList.contains('color-box')) {
+            const targetBox = event.target;
+            const originalZone = draggedBox.parentElement;
+            const targetZone = targetBox.parentElement;
+
+            targetZone.replaceChild(draggedBox, targetBox);
+            originalZone.appendChild(targetBox);
+        }
+    }
+
     function checkInput() {
-        const playerinput = document.getElementById('playerinput').value.replace(' ', '');
-        const playerinputlst = playerinput.split(',');
+        const playerinputlst = Array.from(document.querySelectorAll('.drop-zone')).map(zone => {
+            if (zone.hasChildNodes()) {
+                return zone.firstChild.dataset.id;
+            } else {
+                return '';
+            }
+        });
 
         let message = '';
         error = false;
@@ -50,8 +142,8 @@
             document.getElementById('message').innerHTML = '';
         }
         
-        if (playerinputlst.length < 5) {
-            message = "ERROR: You need to enter like this: '0,1,2,3,4'\nTry again\n\n";
+        if (playerinputlst.includes('')) {
+            message = "ERROR: You need to use all boxes.\nTry again\n\n";
             error = true;
         } else {
             for (let i = 0; i < 5; i++) {
@@ -74,7 +166,7 @@
             } else {
                 message = 'You got ' + count + ' correct\nTry again\n';
                 trynumber += 1;
-                document.getElementById('lastinput').innerText = 'Your last input was ' + playerinput;
+                document.getElementById('lastinput').innerText = 'Your last input was ' + playerinputlst.join(',');
                 document.getElementById('lastinput').classList.remove('hidden');
             }
         }
